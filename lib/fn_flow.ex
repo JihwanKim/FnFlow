@@ -190,8 +190,15 @@ defmodule FnFlow do
     iex> FnFlow.run([])
     {:ok, nil}
   """
+  @spec run(functions :: list(function())) :: {:ok, any()} | {:error, any()}
   def run(functions) do
-    state = loop(FnFlow.State.new(), functions)
+    state = loop(FnFlow.State.new(), functions, %{})
+    state.result
+  end
+
+  @spec run(functions :: list(function()), options :: map()) :: {:ok, any()} | {:error, any()}
+  def run(functions, options) do
+    state = loop(FnFlow.State.new(), functions, options)
     state.result
   end
 
@@ -199,10 +206,10 @@ defmodule FnFlow do
   ####### internal Function #######
   #################################
 
-  defp loop(state, []) do
+  defp loop(state, [], _options) do
     state
   end
-  defp loop(state, [{:bind, currentFunction} | functions]) do
+  defp loop(state, [{:bind, currentFunction} | functions], options) do
     result =
       try do
         currentFunction.(state)
@@ -213,33 +220,33 @@ defmodule FnFlow do
     case result do
       :ok ->
         state
-        |> loop(functions)
+        |> loop(functions, options)
       {:ok, _} ->
         state
-        |> loop(functions)
+        |> loop(functions, options)
       {bindingKey, :ok} ->
         state
         |> FnFlow.State.bind(bindingKey, nil)
-        |> loop(functions)
+        |> loop(functions, options)
       {bindingKey, {:ok, value}} ->
         state
         |> FnFlow.State.bind(bindingKey, value)
-        |> loop(functions)
+        |> loop(functions, options)
       {_, {:error, _} = err} ->
         state
         |> FnFlow.State.result(err)
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
       {:error, _} = err ->
         state
         |> FnFlow.State.result(err)
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
       err ->
         state
         |> FnFlow.State.result({:error, err})
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
     end
   end
-  defp loop(state, [{:bind_parallel, currentFunctions, onEndFunction, opts} | functions]) do
+  defp loop(state, [{:bind_parallel, currentFunctions, onEndFunction, opts} | functions], options) do
     result =
       try do
         rs =
@@ -255,33 +262,33 @@ defmodule FnFlow do
     case result do
       :ok ->
         state
-        |> loop(functions)
+        |> loop(functions, options)
       {:ok, _} ->
         state
-        |> loop(functions)
+        |> loop(functions, options)
       {bindingKey, :ok} ->
         state
         |> FnFlow.State.bind(bindingKey, nil)
-        |> loop(functions)
+        |> loop(functions, options)
       {bindingKey, {:ok, value}} ->
         state
         |> FnFlow.State.bind(bindingKey, value)
-        |> loop(functions)
+        |> loop(functions, options)
       {_, {:error, _} = err} ->
         state
         |> FnFlow.State.result(err)
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
       {:error, _} = err ->
         state
         |> FnFlow.State.result(err)
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
       err ->
         state
         |> FnFlow.State.result({:error, err})
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
     end
   end
-  defp loop(state, [{:do, currentFunction} | functions]) do
+  defp loop(state, [{:do, currentFunction} | functions], options) do
     result =
       try do
         currentFunction.(state)
@@ -293,22 +300,22 @@ defmodule FnFlow do
       :ok ->
         state
         |> FnFlow.State.result({:ok, nil})
-        |> loop(functions)
+        |> loop(functions, options)
       {:ok, _} ->
         state
         |> FnFlow.State.result(result)
-        |> loop(functions)
+        |> loop(functions, options)
       {:error, _} = err ->
         state
         |> FnFlow.State.result(err)
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
       err when is_atom(err) ->
         state
         |> FnFlow.State.result({:error, err})
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
     end
   end
-  defp loop(state, [{:do_parallel, currentFunctions, onEndFunction, opts} | functions]) do
+  defp loop(state, [{:do_parallel, currentFunctions, onEndFunction, opts} | functions], options) do
     result =
       try do
         rs =
@@ -325,22 +332,22 @@ defmodule FnFlow do
       :ok ->
         state
         |> FnFlow.State.result({:ok, nil})
-        |> loop(functions)
+        |> loop(functions, options)
       {:ok, _} ->
         state
         |> FnFlow.State.result(result)
-        |> loop(functions)
+        |> loop(functions, options)
       {:error, _} = err ->
         state
         |> FnFlow.State.result(err)
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
       err when is_atom(err) ->
         state
         |> FnFlow.State.result({:error, err})
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
     end
   end
-  defp loop(state, [{:after, currentFunction} | functions]) do
+  defp loop(state, [{:after, currentFunction} | functions], options) do
     result =
       try do
         currentFunction.(state)
@@ -351,21 +358,21 @@ defmodule FnFlow do
     case result do
       :ok ->
         state
-        |> loop(functions)
+        |> loop(functions, options)
       {:ok, _} ->
         state
-        |> loop(functions)
+        |> loop(functions, options)
       {:error, _} = err ->
         state
         |> FnFlow.State.result(err)
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
       err when is_atom(err) ->
         state
         |> FnFlow.State.result({:error, err})
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
     end
   end
-  defp loop(state, [{:after_parallel, currentFunctions, onEndFunction, opts} | functions]) do
+  defp loop(state, [{:after_parallel, currentFunctions, onEndFunction, opts} | functions], options) do
     result =
       try do
         rs =
@@ -381,21 +388,21 @@ defmodule FnFlow do
     case result do
       :ok ->
         state
-        |> loop(functions)
+        |> loop(functions, options)
       {:ok, _} ->
         state
-        |> loop(functions)
+        |> loop(functions, options)
       {:error, _} = err ->
         state
         |> FnFlow.State.result(err)
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
       err when is_atom(err) ->
         state
         |> FnFlow.State.result({:error, err})
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
     end
   end
-  defp loop(state, [{:finally, currentFunction} | functions]) do
+  defp loop(state, [{:finally, currentFunction} | functions], options) do
     result =
       try do
         state
@@ -408,33 +415,33 @@ defmodule FnFlow do
       :ok ->
         state
         |> FnFlow.State.result({:ok, nil})
-        |> loop(functions)
+        |> loop(functions, options)
       {:ok, _} ->
         state
         |> FnFlow.State.result(result)
-        |> loop(functions)
+        |> loop(functions, options)
       {:error, _} = err ->
         state
         |> FnFlow.State.result(err)
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
       err when is_atom(err) ->
         state
         |> FnFlow.State.result({:error, err})
-        |> do_only_finally(functions)
+        |> do_only_finally(functions, options)
     end
   end
 
-  defp do_only_finally(state, []) do
+  defp do_only_finally(state, [], options) do
     state
   end
-  defp do_only_finally(state, [{:finally, function} | functions]) do
+  defp do_only_finally(state, [{:finally, function} | functions], options) do
     state
     |> loop([{:finally, function}])
-    |> do_only_finally(functions)
+    |> do_only_finally(functions, options)
   end
-  defp do_only_finally(state, [_ | functions]) do
+  defp do_only_finally(state, [_ | functions], options) do
     state
-    |> do_only_finally(functions)
+    |> do_only_finally(functions, options)
   end
 
   defp parallel_worker(state, [firstFunction | _] = functions, opts)
