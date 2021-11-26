@@ -1,6 +1,7 @@
 # FnFlow
 
 **TODO: Add description**
+- [ ] remove try-catch in loop function
 
 ## Installation
 
