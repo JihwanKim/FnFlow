@@ -110,12 +110,16 @@ defmodule FnFlowTest do
                FnFlow.df(fn _state -> {:ok, 1} end)
              ]
            ) === {:error, :any_error}
-    assert FnFlow.run(
-             [
-               FnFlow.bf(fn _state -> {:bind_key, {:ok, :a + 1}} end),
-               FnFlow.df(fn _state -> {:ok, 1} end)
-             ]
-           ) === {:error, :badarith}
+    assert_raise(
+      ArithmeticError,
+      fn -> FnFlow.run(
+              [
+                FnFlow.bf(fn _state -> {:bind_key, {:ok, :a + 1}} end),
+                FnFlow.df(fn _state -> {:ok, 1} end)
+              ]
+            )
+      end
+    )
     assert FnFlow.run(
              [
                FnFlow.bf(fn _state -> {:bind_key, {:error, :any_error}} end),
@@ -123,13 +127,17 @@ defmodule FnFlowTest do
                FnFlow.df(fn _state -> {:ok, 1} end)
              ]
            ) === {:error, :any_error}
-    assert FnFlow.run(
-             [
-               FnFlow.bf(fn _state -> {:bind_key, {:ok, :a + 1}} end),
-               FnFlow.bf(fn _state -> {:bind_key, {:error, :any_error}} end),
-               FnFlow.df(fn _state -> {:ok, 1} end)
-             ]
-           ) === {:error, :badarith}
+    assert_raise(
+      ArithmeticError,
+      fn -> FnFlow.run(
+              [
+                FnFlow.bf(fn _state -> {:bind_key, {:ok, :a + 1}} end),
+                FnFlow.bf(fn _state -> {:bind_key, {:error, :any_error}} end),
+                FnFlow.df(fn _state -> {:ok, 1} end)
+              ]
+            )
+      end
+    )
   end
 
   test "FnFlowRun Ok With DoFun" do
@@ -185,12 +193,18 @@ defmodule FnFlowTest do
                FnFlow.df(fn _state -> {:ok, 1} end)
              ]
            ) === {:error, :any_error}
-    assert FnFlow.run(
-             [
-               FnFlow.df(fn _state -> {:ok, :a + 1} end),
-               FnFlow.df(fn _state -> {:ok, 1} end)
-             ]
-           ) === {:error, :badarith}
+
+    assert_raise(
+      ArithmeticError,
+      fn -> FnFlow.run(
+              [
+                FnFlow.df(fn _state -> {:ok, :a + 1} end),
+                FnFlow.df(fn _state -> {:ok, 1} end)
+              ]
+            )
+      end
+    )
+
     assert FnFlow.run(
              [
                FnFlow.df(fn _state -> {:error, :any_error} end),
@@ -198,13 +212,17 @@ defmodule FnFlowTest do
                FnFlow.df(fn _state -> {:ok, 1} end)
              ]
            ) === {:error, :any_error}
-    assert FnFlow.run(
-             [
-               FnFlow.df(fn _state -> {:ok, :a + 1} end),
-               FnFlow.df(fn _state -> {:error, :any_error} end),
-               FnFlow.df(fn _state -> {:ok, 1} end)
-             ]
-           ) === {:error, :badarith}
+    assert_raise(
+      ArithmeticError,
+      fn -> FnFlow.run(
+              [
+                FnFlow.df(fn _state -> {:ok, :a + 1} end),
+                FnFlow.df(fn _state -> {:error, :any_error} end),
+                FnFlow.df(fn _state -> {:ok, 1} end)
+              ]
+            )
+      end
+    )
   end
 
   test "FnFlowRun Ok With AfterFun" do
@@ -223,12 +241,17 @@ defmodule FnFlowTest do
   end
 
   test "FnFlowRun Error With AfterFun" do
-    assert FnFlow.run(
-             [
-               FnFlow.df(fn _state -> {:ok, 1} end),
-               FnFlow.af(fn _state -> {:ok, :a + 1} end)
-             ]
-           ) === {:error, :badarith}
+
+    assert_raise(
+      ArithmeticError,
+      fn -> FnFlow.run(
+              [
+                FnFlow.df(fn _state -> {:ok, 1} end),
+                FnFlow.af(fn _state -> {:ok, :a + 1} end)
+              ]
+            )
+      end
+    )
     assert FnFlow.run(
              [
                FnFlow.df(fn _state -> {:ok, 1} end),

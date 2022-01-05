@@ -203,12 +203,7 @@ defmodule FnFlow do
     state
   end
   defp loop(state, [{:bind, currentFunction} | functions]) do
-    result =
-      try do
-        currentFunction.(state)
-      catch
-        _, err -> err
-      end
+    result = currentFunction.(state)
 
     case result do
       :ok ->
@@ -240,17 +235,12 @@ defmodule FnFlow do
     end
   end
   defp loop(state, [{:bind_parallel, currentFunctions, onEndFunction, opts} | functions]) do
-    result =
-      try do
-        rs =
-          state
-          |> parallel_worker(currentFunctions, opts)
-        state
-        |> onEndFunction.(rs)
-      catch
-        :error, err ->
-          err
-      end
+    rs =
+      state
+      |> parallel_worker(currentFunctions, opts)
+    result = state
+             |> onEndFunction.(rs)
+
 
     case result do
       :ok ->
@@ -282,12 +272,7 @@ defmodule FnFlow do
     end
   end
   defp loop(state, [{:do, currentFunction} | functions]) do
-    result =
-      try do
-        currentFunction.(state)
-      catch
-        :error, err -> err
-      end
+    result = currentFunction.(state)
 
     case result do
       :ok ->
@@ -309,17 +294,11 @@ defmodule FnFlow do
     end
   end
   defp loop(state, [{:do_parallel, currentFunctions, onEndFunction, opts} | functions]) do
-    result =
-      try do
-        rs =
-          state
-          |> parallel_worker(currentFunctions, opts)
-        state
-        |> onEndFunction.(rs)
-      catch
-        :error, err ->
-          err
-      end
+    rs =
+      state
+      |> parallel_worker(currentFunctions, opts)
+    result = state
+             |> onEndFunction.(rs)
 
     case result do
       :ok ->
@@ -341,12 +320,7 @@ defmodule FnFlow do
     end
   end
   defp loop(state, [{:after, currentFunction} | functions]) do
-    result =
-      try do
-        currentFunction.(state)
-      catch
-        :error, err -> err
-      end
+    result = currentFunction.(state)
 
     case result do
       :ok ->
@@ -366,17 +340,11 @@ defmodule FnFlow do
     end
   end
   defp loop(state, [{:after_parallel, currentFunctions, onEndFunction, opts} | functions]) do
-    result =
-      try do
-        rs =
-          state
-          |> parallel_worker(currentFunctions, opts)
-        state
-        |> onEndFunction.(rs)
-      catch
-        :error, err ->
-          err
-      end
+    rs =
+      state
+      |> parallel_worker(currentFunctions, opts)
+    result = state
+             |> onEndFunction.(rs)
 
     case result do
       :ok ->
@@ -396,13 +364,8 @@ defmodule FnFlow do
     end
   end
   defp loop(state, [{:finally, currentFunction} | functions]) do
-    result =
-      try do
-        state
-        |> currentFunction.()
-      catch
-        :error, err -> err
-      end
+    result = state
+             |> currentFunction.()
 
     case result do
       :ok ->
