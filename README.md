@@ -1,7 +1,7 @@
 # FnFlow
 
 **TODO: Add description**
-- [ ] remove try-catch in loop function
+- [X] remove try-catch in loop function
 
 ## Installation
 
@@ -11,7 +11,7 @@ by adding `fnflow` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:fnflow, "~> 0.1.0"}
+    {:fnflow, "~> 0.2.0"}
   ]
 end
 ```
