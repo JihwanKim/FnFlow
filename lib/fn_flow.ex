@@ -471,46 +471,4 @@ defmodule FnFlow do
         parallel_worker_internal(idxAndRunFuns, restItemMap, [{idx, workerResult} | rs], opts)
     end
   end
-
-  def doTest() do
-    FnFlow.run(
-      [
-        FnFlow.bfp(
-          [
-            fn (state) -> {:ok, 1} end,
-            fn (state) -> {:ok, 1} end,
-            fn (state) -> {:ok, 1} end
-          ],
-          fn (state, onEndData) -> {:bind_key, {:ok, onEndData}} end,
-          [pool: :infinity]
-        ),
-        FnFlow.dfp(
-          [
-            fn (state) -> {:ok, 1} end,
-            fn (state) -> {:ok, 2} end,
-            fn (state) -> {:ok, 3} end
-          ],
-          fn (state, onEndData) ->
-            {
-              :ok,
-              onEndData
-            }
-          end
-        ),
-        FnFlow.afp(
-          [
-            fn (state) ->
-              {:ok, 1}
-            end,
-            fn (state) ->
-              {:ok, 2}
-            end,
-            fn (state) ->
-              {:ok, 3}
-            end
-          ]
-        )
-      ]
-    )
-  end
 end
