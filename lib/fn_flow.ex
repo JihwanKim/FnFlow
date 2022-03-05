@@ -27,6 +27,7 @@ defmodule FnFlow do
 
   @doc """
   FnFlow bind data function
+  bind always require onEndFunction
 
   ## Example
     bindFunParallel(
@@ -104,7 +105,8 @@ defmodule FnFlow do
 
   @doc """
   FnFlow after function
-  data not bind anything. but result is error, run function will return error
+  data not bind anything. but if function return is error, run function will return error.
+  no more work run other function
   """
   @spec afterFun(afterFunction :: fun) :: {:after, fun}
   def afterFun (afterFunction) do
@@ -121,7 +123,8 @@ defmodule FnFlow do
 
   @doc """
   FnFlow after function
-  data not bind anything. but result is error, run function will return error
+  data not bind anything. but if onEndFun return is error, run function will return error.
+  no more work run other function
 
   ## Example
     afterFunParallel(
@@ -160,7 +163,7 @@ defmodule FnFlow do
 
   @doc """
   FnFlow finally function
-  this function always running function.
+  this function always called.
   can update state.result
   """
   @spec finallyFun(finallyFunction :: fun) :: {:finally, fun}
@@ -199,6 +202,18 @@ defmodule FnFlow do
   @spec run(functions :: list(function()), options :: map()) :: {:ok, any()} | {:error, any()}
   def run(functions, options) do
     state = loop(FnFlow.State.new(), functions, options)
+    state.result
+  end
+
+  @spec run(functions :: list(function())) :: {:ok, any()}
+  def run!(functions) do
+    state = loop(FnFlow.State.new(), functions, %{throw_on_error: true})
+    state.result
+  end
+
+  @spec run(functions :: list(function())) :: {:ok, any()}
+  def run!(functions, options) do
+    state = loop(FnFlow.State.new(), functions, %{options | throw_on_error: true})
     state.result
   end
 
